@@ -1,4 +1,4 @@
-﻿@page "/Forums/Chat/{id:int}"
+﻿@page "/Home/Chat/{userId}/{chatToId}"
 
 @using MyProject.Context
 @using MyProject.Model;
@@ -12,15 +12,26 @@
 @inject UserManager<User> userManager
 @inject IHttpContextAccessor httpContextAccessor
 
+<p class="custom-primary-white-text-color">User ID: @userId</p>
+<p class="custom-primary-white-text-color">Chat To ID: @chatToId</p>
+
 @code {
-
-    [Parameter] // Makes it accessible from the route/path.
-    public int id { get; set; }
-
+    public User userNameObj = new User();
+    public User chatToNameObj = new User();
     public User UserObj = new User();
+
+    [Parameter]
+    public string userId { get; set; }
+
+    [Parameter]
+    public string chatToId { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
+        userNameObj = await userManager.FindByIdAsync(userId);
+        chatToNameObj = await userManager.FindByIdAsync(chatToId);
+
         var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
 
         if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
@@ -35,9 +46,8 @@
 
     }
 
-    private async Task RetrieveChats()
+    private async Task RetrieveTexts()
     {
-
     }
 
 }
