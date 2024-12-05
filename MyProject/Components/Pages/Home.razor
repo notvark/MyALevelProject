@@ -1,0 +1,48 @@
+﻿@using MyProject.Model
+@using MyProject.Context
+@using MyProject.Components.Shared
+@using Microsoft.AspNetCore.Http @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Identity @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
+
+@page "/"
+@inject UserManager<User> userManager
+@inject IHttpContextAccessor httpContextAccessor
+@inject PostProvider PostProvider;
+@inject NavigationManager NavigationManager;
+
+<PageTitle>Home</PageTitle>
+
+<h1 class="custom-primary-white-text-color">Hello, @user_name.</h1>
+
+<AuthorizeView>
+
+    <HomePostsDisplay />
+
+</AuthorizeView>
+
+
+@code {
+
+    private string user_name;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        user_name = "Guest";
+
+        var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User); //userManager is responsible for information based on a user, getuserasync retrives information basied off of context.User as it represents the authenticated user
+
+            if (currentUser != null)
+            {
+                user_name = currentUser.UserName; // ASP.NET Core identity name retrieval
+            }
+        }
+
+    }
+
+}

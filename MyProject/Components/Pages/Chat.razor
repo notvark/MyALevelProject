@@ -1,0 +1,43 @@
+﻿@page "/Forums/Comment/{id:int}"
+
+@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Identity @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
+@inherits LayoutComponentBase
+
+@inject PostProvider postProvider
+@inject PostCommentProvider postCommentProvider
+@inject UserManager<User> userManager
+@inject IHttpContextAccessor httpContextAccessor
+
+@code {
+
+    [Parameter] // Makes it accessible from the route/path.
+    public int id { get; set; }
+
+    public User UserObj = new User();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User); //userManager is responsible for information based on a user, getuserasync retrives information basied off of context.User as it represents the authenticated user
+
+            if (currentUser != null)
+            {
+                UserObj = currentUser;
+            }
+        }
+
+    }
+
+    private async Task RetrieveChats()
+    {
+
+    }
+
+}

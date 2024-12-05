@@ -1,0 +1,178 @@
+﻿@page "/Home/Settings"
+
+@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+
+@inject PostProvider postProvider
+@inject PostCommentProvider postCommentProvider
+@inject UserManager<User> userManager
+@inject IHttpContextAccessor httpContextAccessor
+@inject NavigationManager NavigationManager
+@inject SignInManager<User> SignInManager
+
+<h3 class="custom-primary-white-text-color">Settings</h3>
+
+<div class="card-body custom-primary-background-color row">
+
+    <div class="p-3 col">
+        <EditForm Model="@User" OnValidSubmit="@HandleUsernameUpdate">
+            <label for="UserName" class="form-label custom-primary-white-text-color">Username</label>
+            <InputText id="UserName" class="form-control" @bind-Value="User.UserName" aria-describedby="UsernameHelp" />
+            <div id="UsernameHelp" class="form-text custom-primary-white-text-color">
+                This will change your overall name across the platform, please keep it sensible.
+            </div>
+            <div class="pt-2">
+                <button type="submit" class="btn btn-success w-100">Update Username</button>
+            </div>
+        </EditForm>
+    </div>
+
+    <div class="mb-3 p-3 col">
+        <EditForm Model="@User" OnValidSubmit="@HandleEmailUpdate">
+            <label for="Email" class="form-label custom-primary-white-text-color">Email</label>
+            <InputText id="Email" class="form-control" @bind-Value="User.Email" aria-describedby="EmailHelp" />
+            <div id="EmailHelp" class="form-text custom-primary-white-text-color">
+                This will change your email, so be careful as failure to validate possession of your account could lead to your final days on our platform.
+            </div>
+            <div class="pt-2">
+                <button type="submit" class="btn btn-success w-100">Update Email</button>
+            </div>
+        </EditForm>
+    </div>
+
+</div>
+
+@if (!string.IsNullOrWhiteSpace(feedbackMessage) && activeAlert)
+{
+    <p class="mt-2 @(isSuccessful ? "alert alert-primary" : "alert alert-danger")">@feedbackMessage</p>
+}
+
+@code {
+    private User User { get; set; } = new();
+    private string user_name;
+    private string feedbackMessage;
+    private bool isSuccessful;
+    private bool activeAlert;
+
+    [Parameter]
+    public string userName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = httpContextAccessor.HttpContext;
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User);
+            if (currentUser != null)
+            {
+                user_name = currentUser.UserName;
+                User = currentUser;
+            }
+        }
+    }
+
+    private async Task DisposeAlert()
+    {
+        await Task.Delay(2000);
+        activeAlert = false;
+        feedbackMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    private async Task HandleUsernameUpdate()
+    {
+        activeAlert = true;
+
+        if (string.IsNullOrWhiteSpace(User.UserName))
+        {
+            feedbackMessage = "Username cannot be empty.";
+            isSuccessful = false;
+            await DisposeAlert();
+            return;
+        }
+
+        var existingUser = await userManager.FindByNameAsync(User.UserName);
+
+        if (existingUser != null && existingUser.Id != User.Id)
+        {
+            feedbackMessage = "This username is already taken. Please choose another one.";
+            isSuccessful = false;
+            await DisposeAlert();
+            return;
+        }
+
+        if (existingUser != null && existingUser.UserName == User.UserName)
+        {
+            feedbackMessage = "You already have this Username.";
+            isSuccessful = false;
+            await DisposeAlert();
+            return;
+        }
+
+        var result = await userManager.UpdateAsync(User);
+
+        if (result.Succeeded)
+        {
+            feedbackMessage = "Username updated successfully!";
+            isSuccessful = true;
+        }
+        else
+        {
+            feedbackMessage = "Error updating username: " + string.Join(", ", result.Errors.Select(e => e.Description));
+            isSuccessful = false;
+        }
+
+        await DisposeAlert();
+    }
+
+    private async Task HandleEmailUpdate()
+    {
+        activeAlert = true;
+
+        if (string.IsNullOrWhiteSpace(User.Email))
+        {
+            feedbackMessage = "Email cannot be empty.";
+            isSuccessful = false;
+            await DisposeAlert();
+            return;
+        }
+
+        var existingUser = await userManager.FindByEmailAsync(User.Email);
+
+        if (existingUser != null && existingUser.Email != User.Email)
+        {
+            feedbackMessage = "This Email is already taken. Please choose another one.";
+            isSuccessful = false;
+            await DisposeAlert();
+            return;
+        }
+
+        if (existingUser != null && existingUser.Email == User.Email)
+        {
+            feedbackMessage = "You already have this Email.";
+            isSuccessful = false;
+            await DisposeAlert();
+            return;
+        }
+
+        var result = await userManager.UpdateAsync(User);
+
+        if (result.Succeeded)
+        {
+            feedbackMessage = "Email updated successfully!";
+            isSuccessful = true;
+        }
+        else
+        {
+            feedbackMessage = "Error updating Email: " + string.Join(", ", result.Errors.Select(e => e.Description));
+            isSuccessful = false;
+        }
+
+        await DisposeAlert();
+    }
+}

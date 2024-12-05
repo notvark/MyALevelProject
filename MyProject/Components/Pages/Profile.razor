@@ -1,0 +1,37 @@
+﻿@page "/Home/Profile/{userName}"
+
+@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+
+@inject PostProvider postProvider
+@inject PostCommentProvider postCommentProvider
+@inject UserManager<User> userManager
+@inject IHttpContextAccessor httpContextAccessor
+@inject NavigationManager NavigationManager
+
+
+<h3 class="custom-primary-white-text-color">@searchedUser.UserName's Profile</h3>
+
+@if (!string.IsNullOrWhiteSpace(feedbackMessage))
+{
+    <p class="mt-2 @(isSuccessful ? "alert alert-primary" : "alert alert-danger")">@feedbackMessage</p>
+}
+
+@code {
+    private User User { get; set; } = new();
+    private User searchedUser = new User();
+    private string feedbackMessage;
+    private bool isSuccessful;
+
+    [Parameter]
+    public string userName { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        searchedUser = await userManager.FindByNameAsync(userName);
+    }
+}

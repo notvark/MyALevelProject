@@ -1,0 +1,113 @@
+﻿@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Identity @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
+@inherits LayoutComponentBase
+
+
+@inject UserManager<User> userManager;
+@* Post provider allows for me to access the functions in PostProvider *@
+@inject PostCommentProvider PostCommentProvider;
+@inject NavigationManager NavigationManager;
+@inject UserManager<User> userManager;
+@*For retrieving client ID*@
+@inject IHttpContextAccessor httpContextAccessor;
+@*For retrieving client ID*@
+
+<form>
+    <div class="mb-3">
+        <label for="Username" class="form-label custom-primary-white-text-color">Username</label>
+        <input type="text" class="form-control" id="searchReference" @bind="searchUsername.UserName" aria-describedby="searchReference">
+        <div id="serchReference" class="form-text custom-primary-white-text-color">Enter the username to search.</div>
+    </div>
+    <button type="button" @onclick="SearchUser" class="btn btn-primary mb-3">Submit</button>
+</form>
+
+@{
+    @if (buttonClicked)
+    {
+        if (userFound)
+        {
+            if (user != currentUserObj)
+            {
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color border-0 mb-2" style="background-color: black;">
+                        <div style="flex-grow: 1;">
+                            <strong>
+                                <i class="fas fa-user user-icon-owner pt-1"></i>
+                                <a href="/Home/Profile/@user.UserName" class="user-link-owner">@user.UserName</a>
+                            </strong>
+                            <p class="pt-3 pb-3" style="margin: 0;">User information successfully retrieved.</p>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <a href="/Home/Profile/@user.UserName" class="btn btn-primary btn-sm me-2">View Profile</a>
+                            <button class="btn btn-success btn-sm" @onclick="() => StartChat(user)">Chat</button>
+                        </div>
+                    </li>
+                </ul>
+            }
+            else
+            {
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color border-0 mb-2" style="background-color: black;">
+                        <p class="pt-3 pb-3 custom-primary-red-text-color" style="margin: 0;">
+                            <b>Cannot search yourself!</b>
+                        </p>
+                    </li>
+                </ul>
+            }
+        }
+        else
+        {
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color border-0 mb-2" style="background-color: black;">
+                    <p class="pt-3 pb-3 custom-primary-red-text-color" style="margin: 0;">
+                        <b>User not found.</b>
+                    </p>
+                </li>
+            </ul>
+        }
+
+    }
+    
+}
+
+
+
+@code {
+    private User searchUsername = new User();
+    private bool userFound;
+    private User user;
+    private User currentUserObj;
+    private bool buttonClicked;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User); //userManager is responsible for information based on a user, getuserasync retrives information basied off of context.User as it represents the authenticated user
+
+            if (currentUser != null)
+            {
+                currentUserObj = currentUser;
+            }
+        }
+
+    }
+
+
+    private async Task SearchUser()
+    {
+        buttonClicked = true;
+        user = await userManager.FindByNameAsync(searchUsername.UserName);
+        userFound = user != null;
+    }
+
+    private async Task StartChat(User user)
+    {
+        NavigationManager.NavigateTo("/Home/Chat");
+    }
+}

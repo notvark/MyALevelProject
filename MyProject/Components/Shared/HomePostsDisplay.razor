@@ -1,0 +1,121 @@
+﻿@using MyProject.Context
+@using MyProject.Model;
+@using MyProject.Components.Shared
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.AspNetCore.Http 
+@using Microsoft.AspNetCore.Identity 
+@using Microsoft.AspNetCore.Components.Authorization 
+
+
+@inject PostProvider PostProvider;
+@inject DatabaseContext DatabaseContext;
+@inject PostCommentProvider PostCommentProvider;
+@inject NavigationManager NavigationManager;
+@inject UserManager<User> userManager;
+@inject IHttpContextAccessor httpContextAccessor;
+
+<div class="d-flex justify-content-center p-2">
+    <ul class="list-group" style="max-width: 800px; width: 100%;">
+        @foreach (var post in posts)
+        {
+            <div class="card mb-3 text-light positive-relative" style="background-color: black; border-radius: 8px; width: 800px;">
+                <div class="card-body">
+
+                    <div class="position-absolute top-0 end-0 p-2">
+
+                        @{
+                            var userName = ReturnAuthorOfPosts(post);
+                        }
+
+                        @{
+
+                            @if (user_name == userName)
+                            {
+                                <div>
+                                    <i class="fas fa-user user-icon-owner"></i>
+                                    <a href="/Home/Profile/@userName" class="user-link-owner">@userName</a>
+                                </div>
+                            }
+                            else // Use else to render this block only if the first condition is false
+                            {
+                                <div>
+                                    <i class="fas fa-user user-icon"></i>
+                                    <a href="/Home/Profile/@userName" class="user-link">@userName</a>
+                                </div>
+                            }
+
+
+                        }
+
+                    </div>
+
+                    <div class="pt-4">
+                        <h3 class="card-title"><strong>@post.Title</strong></h3>
+                        <p class="card-text pt-2 pb-3">@post.Description</p>
+                    </div>
+
+                    <p class="sent-time">
+                        <i class="fas fa-calendar-alt"></i> @post.PostCreatedAt.ToString("MMMM dd, yyyy")
+                        <br />
+                        <i class="fas fa-clock"></i> @post.PostCreatedAt.ToString("hh:mm tt")
+                    </p>
+
+                    <div class="custom-comment-separate-line mb-4"></div>
+
+                    <div class="mb-3">
+                        <a href="/Forums/Comment/@post.Id" class="btn btn-primary btn-sm">
+                            <i class="fas fa-comment"></i> Comment (@ReturnCommentCount(post))
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </ul>
+</div>
+
+
+@code {
+
+    private User User { get; set; }
+    private Post Post { get; set; } = new Post();
+    private List<Post> posts;
+    private string user_name;
+
+    private PostComment PostComment { get; set; } = new PostComment();
+    private List<PostComment> postcomments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        posts = await PostProvider.GetAllPostsAsync();
+        postcomments = await PostCommentProvider.GetCommentByPostAsync(Post);
+
+        var context = httpContextAccessor.HttpContext;
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User); //await to actually get the User object
+
+            if (currentUser != null)
+            {
+                User = currentUser; 
+                user_name = currentUser.UserName;
+            }
+        }
+    }
+
+
+    private int ReturnCommentCount(Post post)
+    {
+        return PostCommentProvider.CountCommentsForPostAsync(post);
+    }
+
+    private string ReturnAuthorOfPosts(Post post)
+    {
+        return PostProvider.GetUserByPost(post);
+    }
+
+
+
+}
+

@@ -1,0 +1,73 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar-bg">
+    <div class="container">
+        <a class="navbar-brand custom-primary-white-text-color" href="/">R2.0</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-collapse collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <NavLink class="nav-link custom-primary-white-text-color" href="/" Match="NavLinkMatch.All">Home</NavLink>
+                </li>
+
+                <AuthorizeView> 
+                    <li class="nav-item">
+                        <NavLink class="nav-link custom-primary-white-text-color" href="/Home/Notepad" Match="NavLinkMatch.Prefix">Notes</NavLink> @*Notepad*@
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link custom-primary-white-text-color" href="/Home/Posts" Match="NavLinkMatch.Prefix">Posts</NavLink> @*Forums*@
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link custom-primary-white-text-color" href="/Home/Communicate" Match="NavLinkMatch.Prefix">Communication</NavLink> @*Communication*@
+                    </li>
+                </AuthorizeView> @*Allows me to add redirects to implements*@
+
+            </ul>
+            <ul class="nav navbar-nav ml-auto w-100 justify-content-end">
+                <AuthorizeView>
+                    <Authorized>
+                        <nav class="navbar navbar-expand-lg bg-transparent">
+                            <div class="container-fluid">
+                                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                                    <span class="navbar-toggler-icon"></span>
+                                </button>
+                                <div class="collapse navbar-collapse">
+                                    <ul class="navbar-nav">
+                                        <li class="nav-item dropdown">
+                                            <button class="btn dropdown-toggle custom-primary-white-text-color" data-bs-toggle="dropdown" aria-expanded="false">
+                                                @context.User.Identity.Name
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark"> @*Fix bg color of items*@
+                                                <li><a class="dropdown-item" href="/Home/Profile/@context.User.Identity?.Name">Profile</a></li>
+                                                <li><a class="dropdown-item" href="/Home/Settings">Settings</a></li>
+                                                <li><a class="dropdown-item" href="/Account/Logout">Logout</a></li>
+                                                <li><a class="dropdown-item custom-primary-red-text-color" href="/Account/Delete">Delete Account</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link custom-primary-white-text-color" href="/Account/Login" Match="NavLinkMatch.Prefix">Login</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link custom-primary-white-text-color" href="/Account/Register" Match="NavLinkMatch.Prefix">Register</NavLink>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+    <div class="p-2 rounded">
+        @Body
+    </div>
+</main>

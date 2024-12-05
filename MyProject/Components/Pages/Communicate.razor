@@ -1,0 +1,30 @@
+﻿@page "/Home/Communicate"
+@using MyProject.Components.Shared
+
+<Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
+
+    <Authorized>
+
+        <h3 class="custom-primary-white-text-color">Communication Manager</h3>
+
+        <UserSearchDisplay />
+
+    </Authorized>
+
+    <NotAuthorized>
+
+        <h3 class="custom-primary-white-text-color">Path unaccessible!</h3>
+        <footer class="custom-primary-white-text-color">
+            Please <a href="/Account/Login" class="custom-link">login</a> or
+            <a href="/Account/Register" class="custom-link">sign up</a> to continue.
+        </footer>
+
+    </NotAuthorized>
+
+</Microsoft.AspNetCore.Components.Authorization.AuthorizeView>
+
+
+
+@code {
+
+}

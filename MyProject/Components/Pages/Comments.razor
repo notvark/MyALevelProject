@@ -1,0 +1,187 @@
+﻿@page "/Forums/Comment/{id:int}"
+
+@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Identity @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
+@inherits LayoutComponentBase
+
+@inject PostProvider postProvider
+@inject PostCommentProvider postCommentProvider
+@inject UserManager<User> userManager
+@inject IHttpContextAccessor httpContextAccessor
+
+<div class="d-flex justify-content-center p-2">
+    <ul class="list-group" style="max-width: 800px; width: 100%;">
+        <div class="card mb-3 text-light" style="background-color: black; border-radius: 8px; width: 800px;">
+            <div class="card-body">
+                <div class="position-absolute top-0 end-0 p-2">
+
+                    @{
+                        var postAuthor = ReturnAuthorOfPost(Post);
+                    }
+                    
+                    @if (user_name == postAuthor)
+                    {
+                        <i class="fas fa-user user-icon-owner"></i>
+                        <a href="/Home/Profile/@Post.User.UserName" class="user-link-owner">@Post.User.UserName</a>
+                    }
+                    else
+                    {
+                        <i class="fas fa-user user-icon"></i>
+                        <a href="/Home/Profile/@Post.User.UserName" class="user-link">@Post.User.UserName</a>
+                    }
+
+                </div>
+
+                <div class="pt-4">
+                    <h3 class="card-title"><strong>@Post?.Title</strong></h3>
+                    <p class="card-text pt-2">@Post?.Description</p>
+                </div>
+
+                <p class="sent-time pt-3">
+                    <i class="fas fa-calendar-alt"></i> @Post?.PostCreatedAt.ToString("MMMM dd, yyyy")
+                    <br />
+                    <i class="fas fa-clock"></i> @Post?.PostCreatedAt.ToString("hh:mm tt")
+                </p>
+
+                <div class="custom-comment-separate-line mb-3"></div>
+
+                <EditForm Model="@PostComment" OnValidSubmit="@HandleSubmit">
+                    <div class="col-12 mb-2">
+                        <input type="text" class="form-control" @bind="PostComment.Comment" placeholder="Content" aria-label="PostContent">
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-success w-100">Comment</button>
+                    </div>
+                </EditForm>
+
+            </div>
+        </div>
+    </ul>
+</div>
+
+<div class="d-flex justify-content-center">
+    <ul class="list-group" style="max-width: 800px; width: 100%;">
+        @foreach (var comment in postcomments)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color border-0 mb-2" style="background-color:black;">
+
+                <div style="flex-grow: 1;">
+
+                    @{
+                        var commentAuthor = comment.User.UserName;
+                    }
+
+                    @if (user_name == commentAuthor)
+                    {
+                        <strong>
+                            <i class="fas fa-user user-icon-owner"></i>
+                            <a href="/Home/Profile/@comment.User.UserName" class="user-link-owner">@comment.User.UserName</a>
+                        </strong>
+                    }
+                    else
+                    {
+                        <strong>
+                            <i class="fas fa-user user-icon"></i>
+                            <a href="/Home/Profile/@comment.User.UserName" class="user-link">@comment.User.UserName</a>
+                        </strong>
+                    }
+
+                    <p class="pt-3">@comment.Comment</p>
+                    <p class="sent-time">
+                        <i class="fas fa-calendar-alt"></i> @comment.CommentSentTime.ToString("MMMM dd, yyyy")
+                        <br />
+                        <i class="fas fa-clock"></i> @comment.CommentSentTime.ToString("hh:mm tt")
+                    </p>
+                </div>
+
+
+
+                @if (user_name == commentAuthor || Post.User == User)
+                {
+                    <button class="btn btn-danger btn-sm mt-1" style="align-self: flex-start;" @onclick="() => DeletePostComment(comment)">Delete</button>
+                }
+
+            </li>
+        }
+    </ul>
+</div>
+
+
+
+
+
+
+@code {
+
+    [Parameter] // Makes it accessible from the route/path.
+    public int id { get; set; }
+
+    private User User { get; set; }
+    private PostComment PostComment { get; set; } = new PostComment();
+    private MyProject.Model.Post Post { get; set; }
+    private List<PostComment> postcomments;
+    private string user_name;
+    private Model.Post modelPost;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Post = await postProvider.GetPostByIdAsync(id);
+        postcomments = await postCommentProvider.GetCommentByPostAsync(Post);
+        //returning comments from the database itself through the postCommentProvider, as it is linked
+
+
+
+        var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User); //userManager is responsible for information based on a user, getuserasync retrives information basied off of context.User as it represents the authenticated user
+
+            if (currentUser != null)
+            {
+                user_name = currentUser.UserName; // ASP.NET Core identity name retrieval
+                User = currentUser;
+            }
+        }
+
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(PostComment.Comment))
+        {
+            return;
+        }
+
+        var currentUser = await userManager.GetUserAsync(httpContextAccessor.HttpContext.User);
+        if (currentUser == null)
+        {
+            return;
+        }
+
+        PostComment.Post = Post;
+        PostComment.User = currentUser;
+        PostComment.CommentSentTime = DateTime.UtcNow;
+
+        await postCommentProvider.AddPostCommentAsync(PostComment);
+        PostComment = new PostComment(); //removes input from form
+
+        postcomments = await postCommentProvider.GetCommentByPostAsync(Post); //refreshes comments without issues
+
+    }
+
+    private string ReturnAuthorOfPost(Model.Post post)
+    {
+        return postProvider.GetUserByPost(post); // Correct usage of the method
+    }
+
+    private async Task DeletePostComment(PostComment comment)
+    {
+        await postCommentProvider.DeletePostCommentAsync(comment);
+        postcomments = await postCommentProvider.GetCommentByPostAsync(Post); //refreshes notes without issues
+    }
+
+}

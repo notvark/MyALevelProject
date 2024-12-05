@@ -1,0 +1,142 @@
+﻿@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Identity @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
+@inherits LayoutComponentBase
+
+
+@inject PostProvider PostProvider; 
+@* Post provider allows for me to access the functions in PostProvider *@
+@inject PostCommentProvider PostCommentProvider;
+@inject NavigationManager NavigationManager;
+@inject UserManager<User> userManager;
+@*For retrieving client ID*@
+@inject IHttpContextAccessor httpContextAccessor;
+@*For retrieving client ID*@
+
+
+<EditForm Model="@Post" OnValidSubmit="@HandleSubmit">
+    <div class="d-flex justify-content-center p-2">
+        <div class="card custom-primary-post-card-border" style="max-width: 800px; width: 100%;">
+            <div class="card-body custom-primary-background-color">
+                <h4 class="card-title custom-primary-white-text-color">Create Post</h4>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <input type="text" class="form-control" @bind="Post.Title" placeholder="Title" aria-label="PostTitle">
+                    </div>
+                    <div class="col-12">
+                        <input type="text" class="form-control" @bind="Post.Description" placeholder="Description" aria-label="PostContent">
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-success w-100">Save Post</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<div class="d-flex justify-content-center p-2">
+    <ul class="list-group" style="max-width: 800px; width: 100%;">
+        @foreach (var post in posts)
+        {
+            <div class="card mb-2 text-light position-relative" style="background-color: black; border-radius: 8px; width: 800px;">
+                <div class="card-body">
+
+                    <div class="position-absolute top-0 end-0 p-2">
+
+                        @{
+                            var userName = ReturnAuthorOfPosts(post);
+                        }
+
+                        <div>
+                            <i class="fas fa-user user-icon-owner"></i>
+                            <a href="/Home/Profile/@userName" class="user-link-owner">@userName</a>
+                        </div>
+
+                    </div>
+
+                    <div class="pt-4">
+                        <h3 class="card-title"><strong>@post.Title</strong></h3>
+                        <p class="card-text pt-2">@post.Description</p>
+                    </div>
+
+                    <p class="sent-time mt-3">
+                        <i class="fas fa-calendar-alt"></i> @post.PostCreatedAt.ToString("MMMM dd, yyyy")
+                        <br />
+                        <i class="fas fa-clock"></i> @post.PostCreatedAt.ToString("hh:mm tt")
+                    </p>
+
+                    <div class="custom-comment-separate-line"></div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-danger btn-sm mt-1" @onclick="() => DeletePost(post)">Delete</button>
+
+                        <a href="/Forums/Comment/@post.Id" class="btn btn-primary btn-sm mt-1">
+                            <i class="fas fa-comment"></i> View Comments (@ReturnCommentCount(post))
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </ul>
+</div>
+
+
+
+
+
+@code {
+
+    private User UserId { get; set; } //To transfer value from function above
+    private Post Post { get; set; } = new Post();
+    private List<Post> posts;
+    private int counter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = httpContextAccessor.HttpContext;
+        var currentUser = await userManager.GetUserAsync(context.User);
+        UserId = currentUser; // Can't be null, page only accessible by Authorized Users, ignore
+
+        posts = await PostProvider.GetPostByUserAsync(UserId);
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(Post.Title) || string.IsNullOrWhiteSpace(Post.Description))
+        {
+            return;
+        }
+
+
+        Post.User = UserId;
+        Post.PostCreatedAt = DateTime.Now;
+
+        await PostProvider.AddPostAsync(Post);
+        Post = new Post(); //removes input from form
+        posts = await PostProvider.GetPostByUserAsync(UserId); //refreshes posts without issues
+
+
+    }
+
+    private async Task DeletePost(Post post)
+    {
+        await PostProvider.DeletePostAsync(post);
+        posts = await PostProvider.GetPostByUserAsync(UserId); //refreshes posts without issues
+    }
+
+    private int ReturnCommentCount(Post post)
+    {
+        return PostCommentProvider.CountCommentsForPostAsync(post);
+    }
+
+    private string ReturnAuthorOfPosts(Post post)
+    {
+        return PostProvider.GetUserByPost(post);
+    }
+
+}
+

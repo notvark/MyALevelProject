@@ -1,0 +1,120 @@
+﻿@using MyProject.Context
+@using MyProject.Model;
+@using Microsoft.AspNetCore.Http @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Identity @*For retrieving client ID*@
+@using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
+@using System.ComponentModel.DataAnnotations;
+@inherits LayoutComponentBase
+
+
+@inject NoteProvider NoteProvider;
+@inject NavigationManager NavigationManager;
+@inject UserManager<User> userManager;
+@*For retrieving client ID*@
+@inject IHttpContextAccessor httpContextAccessor;
+@*For retrieving client ID*@
+
+
+<EditForm Model="@Model" OnValidSubmit="@HandleSubmit" FormName="name">
+    <div class="d-flex justify-content-center p-2">
+        <div class="card custom-primary-notepad-card-border" style="max-width: 800px; width: 100%;">
+            <div class="card-body custom-primary-background-color">
+                <h4 class="card-title custom-primary-white-text-color">Create Note</h4>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <input type="text" class="form-control" @bind-value="Model.NoteContent" placeholder="Note Content" aria-label="NoteContent">
+                    </div>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-success w-100">Save Note</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<div class="d-flex justify-content-center p-2">
+    <ul class="list-group" style="max-width: 800px; width: 100%;">
+        @foreach (var note in notes)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color border-0 mb-2" style="background-color:black;">
+                <div style="flex-grow: 1;">
+                    <strong>
+                        <i class="fas fa-user user-icon-owner pt-1"></i>
+                        <a href="/Home/Profile/@note.User.UserName" class="user-link-owner">@note.User.UserName</a>
+                    </strong>
+                    <p class="pt-3 pb-3" style="margin: 0;">@note.NoteContent</p>
+                </div>
+                <button class="btn btn-danger btn-sm mt-1" @onclick="() => DeleteNote(note)" style="align-self: flex-start;">Delete</button>
+            </li>
+        }
+    </ul>
+</div>
+
+
+
+
+
+@code {
+
+    private User UserId { get; set; } //To transfer value from function above
+    private Note Note { get; set; } = new Note();
+    private List<Note> notes;
+    private NoteModel Model { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = httpContextAccessor.HttpContext;
+        var currentUser = await userManager.GetUserAsync(context.User);
+        UserId = currentUser; // Can't be null, page only accessible by Authorized Users, ignore
+
+        notes = await NoteProvider.GetNoteByUserAsync(UserId);
+
+        Model = new NoteModel();
+    }
+
+    private async Task HandleSubmit()
+    {
+        var note = new Note
+            {
+                NoteContent = Model.NoteContent
+            };
+
+        if (string.IsNullOrWhiteSpace(note.NoteContent))
+        {
+            return;
+        }
+
+        Note.User = UserId;
+
+        await NoteProvider.AddNoteAsync(Note);
+        Note = new Note(); //removes input from form
+        notes = await NoteProvider.GetNoteByUserAsync(UserId); //refreshes notes without issues
+
+    }
+
+    private async Task DeleteNote(Note note)
+    {
+        await NoteProvider.DeleteNoteAsync(note);
+        notes = await NoteProvider.GetNoteByUserAsync(UserId); //refreshes notes without issues
+    }
+
+    private sealed class NoteModel
+    {
+        [Required(ErrorMessage = "Please enter the content of your note.")]
+        public string NoteContent { get; set; } = "";
+
+
+        public NoteModel()
+        {
+        }
+
+        public NoteModel(Note note)
+        {
+            NoteContent = note.NoteContent;
+        }
+
+    }
+
+}
+
