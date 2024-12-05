@@ -15,14 +15,14 @@
 @*For retrieving client ID*@
 
 
-<EditForm Model="@Model" OnValidSubmit="@HandleSubmit" FormName="name">
+<EditForm Model="@Note" OnValidSubmit="@HandleSubmit">
     <div class="d-flex justify-content-center p-2">
         <div class="card custom-primary-notepad-card-border" style="max-width: 800px; width: 100%;">
             <div class="card-body custom-primary-background-color">
                 <h4 class="card-title custom-primary-white-text-color">Create Note</h4>
                 <div class="row g-3">
                     <div class="col-12">
-                        <input type="text" class="form-control" @bind-value="Model.NoteContent" placeholder="Note Content" aria-label="NoteContent">
+                        <input type="text" class="form-control" @bind-value="Note.NoteContent" placeholder="Note Content" aria-label="NoteContent">
                     </div>
                     <div class="col-md-12">
                         <button type="submit" class="btn btn-success w-100">Save Note</button>
@@ -60,7 +60,6 @@
     private User UserId { get; set; } //To transfer value from function above
     private Note Note { get; set; } = new Note();
     private List<Note> notes;
-    private NoteModel Model { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -69,18 +68,12 @@
         UserId = currentUser; // Can't be null, page only accessible by Authorized Users, ignore
 
         notes = await NoteProvider.GetNoteByUserAsync(UserId);
-
-        Model = new NoteModel();
     }
 
     private async Task HandleSubmit()
     {
-        var note = new Note
-            {
-                NoteContent = Model.NoteContent
-            };
 
-        if (string.IsNullOrWhiteSpace(note.NoteContent))
+        if (string.IsNullOrWhiteSpace(Note.NoteContent))
         {
             return;
         }
@@ -97,23 +90,6 @@
     {
         await NoteProvider.DeleteNoteAsync(note);
         notes = await NoteProvider.GetNoteByUserAsync(UserId); //refreshes notes without issues
-    }
-
-    private sealed class NoteModel
-    {
-        [Required(ErrorMessage = "Please enter the content of your note.")]
-        public string NoteContent { get; set; } = "";
-
-
-        public NoteModel()
-        {
-        }
-
-        public NoteModel(Note note)
-        {
-            NoteContent = note.NoteContent;
-        }
-
     }
 
 }
