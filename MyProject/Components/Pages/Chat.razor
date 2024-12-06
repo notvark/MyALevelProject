@@ -29,6 +29,21 @@
         </div>
     }
 
+    <div class="card-body">
+        @foreach (var message in chatMessages)
+        {
+            <div class="d-flex mb-2 @(message.FromUserId == userNameObj.Id ? "justify-content-end" : "justify-content-start")">
+                <div class="p-2 rounded"
+                     style="background-color: @(message.FromUserId == userNameObj.Id ? "#007bff" : "#6c757d"); color: white;">
+                    <span>@message.Message</span>
+                    <br />
+                    <small class="text-muted">@message.SentDateTime.ToLocalTime().ToString("g")</small>
+                </div>
+            </div>
+        }
+    </div>
+
+
     <div class="card-footer">
         <EditForm Model="@chatObj" OnValidSubmit="@SendMessage">
             <div class="d-flex">
@@ -51,7 +66,6 @@
 
     private List<MyProject.Model.Chat> chatMessages;
 
-
     private bool newChat = true;
 
     [Parameter]
@@ -68,7 +82,11 @@
 
         chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj);
 
-        if (chatMessages != null)
+        if (chatMessages.Count == 0)
+        {
+            newChat = true;
+        }
+        else
         {
             newChat = false;
         }
@@ -93,11 +111,17 @@
             return;
         }
 
+        chatObj.FromUserId = userNameObj.Id;
+        chatObj.ToUserId = chatToNameObj.Id;
+        chatObj.SentDateTime = DateTime.UtcNow;
 
+        await chatProvider.SendMessageAsync(chatObj);
 
         chatObj = new MyProject.Model.Chat();
 
-        newChat = false;
+        newChat = false; //Setting it to false so it updates
+    
+        chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj);
     }
 
 }
