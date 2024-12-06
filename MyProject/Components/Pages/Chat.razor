@@ -13,15 +13,46 @@
 @inject ChatProvider chatProvider
 @inject IHttpContextAccessor httpContextAccessor
 
-<p class="custom-primary-white-text-color">User ID: @userId</p>
-<p class="custom-primary-white-text-color">Chat To ID: @chatToId</p>
+<div class="card shadow-lg border-0 mt-4" style="background-color: #343a40; color: white;">
+    
+    <div class="card-header bg-secondary text-white">
+        <i class="fa-solid fa-message"></i> 
+        @chatToNameObj.UserName
+    </div>
+
+    @if (newChat)
+    {
+        <div class="card-body">
+            <div>
+                <p class="card-text text-muted" style="color: #adb5bd !important;">No messages yet. Start a conversation!</p>
+            </div>
+        </div>
+    }
+
+    <div class="card-footer">
+        <EditForm Model="@chatObj" OnValidSubmit="@SendMessage">
+            <div class="d-flex">
+                <input type="text" class="form-control me-2" @bind="chatObj.Message"
+                           placeholder="Type your message here..." />
+                <button type="submit" class="btn btn-primary w-25">
+                    <i class="far fa-paper-plane" aria-hidden="true"></i>
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
 
 @code {
     public User userNameObj = new User();
     public User chatToNameObj = new User();
     public User UserObj = new User();
+    private MyProject.Model.Chat chatObj = new MyProject.Model.Chat();
 
-    private bool newChat = false;
+    private List<MyProject.Model.Chat> chatMessages;
+
+
+    private bool newChat = true;
 
     [Parameter]
     public string userId { get; set; }
@@ -35,6 +66,13 @@
         userNameObj = await userManager.FindByIdAsync(userId);
         chatToNameObj = await userManager.FindByIdAsync(chatToId);
 
+        chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj);
+
+        if (chatMessages != null)
+        {
+            newChat = false;
+        }
+
         var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
 
         if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
@@ -46,15 +84,20 @@
                 UserObj = currentUser;
             }
         }
-
     }
 
-    private async Task RetrieveTexts()
+    private async Task SendMessage()
     {
-        if ()
+        if (string.IsNullOrWhiteSpace(chatObj.Message))
         {
-            chatProvider.RetrieveChatsOrdered()
+            return;
         }
+
+
+
+        chatObj = new MyProject.Model.Chat();
+
+        newChat = false;
     }
 
 }

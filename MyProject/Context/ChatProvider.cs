@@ -9,9 +9,10 @@ namespace MyProject.Context
     {
         private readonly DatabaseContext _context;
 
-        public async Task<List<Chat>> RetrieveChatsOrdered(User currentUser, User chatToUser)
+        public async Task<List<Chat>> RetrieveTextsOrdered(User currentUser, User chatToUser)
         {
             return await _context.Chats
+                .Where(chat => chat.FromUserId == currentUser.Id && chat.ToUserId == chatToUser.Id)
                 .OrderBy(chat => chat.SentDateTime)
                 .ToListAsync();
         }
