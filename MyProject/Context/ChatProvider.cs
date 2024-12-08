@@ -29,5 +29,11 @@ namespace MyProject.Context
             _context.Chats.Add(chat);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteMessageAsync(Chat chat)
+        {
+            _context.Chats.Remove(chat);
+            await _context.SaveChangesAsync();
+        }
     }
 }

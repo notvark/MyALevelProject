@@ -35,13 +35,24 @@
             <div class="d-flex mb-2 @(message.FromUserId == userNameObj.Id ? "justify-content-end" : "justify-content-start")">
                 <div class="p-2 rounded"
                      style="background-color: @(message.FromUserId == userNameObj.Id ? "#007bff" : "#6c757d"); color: white;">
+
                     <span>@message.Message</span>
                     <br />
-                    <small class="text-muted">@message.SentDateTime.ToLocalTime().ToString("g")</small>
+                    <div class="d-flex justify-content-between align-items-center"> @*Place the time and delete button in same div*@
+                        <small class="text-muted">@message.SentDateTime.ToLocalTime().ToString("g")</small>
+                        @if (message.FromUserId == userNameObj.Id)
+                        {
+                            <button class="btn btn-danger btn-sm ms-2"
+                                    @onclick="() => DeleteMessage(message)" style="align-self: flex-start;"> @*bottom right*@
+                                Delete
+                            </button>
+                        }
+                    </div>
                 </div>
             </div>
         }
     </div>
+
 
 
     <div class="card-footer">
@@ -122,6 +133,12 @@
         newChat = false; //Setting it to false so it updates
     
         chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj);
+    }
+
+    private async Task DeleteMessage(MyProject.Model.Chat chat)
+    {
+        await chatProvider.DeleteMessageAsync(chat); //delete func
+        chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj); //refresh
     }
 
 }
