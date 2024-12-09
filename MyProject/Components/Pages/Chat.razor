@@ -14,36 +14,38 @@
 @inject IHttpContextAccessor httpContextAccessor
 
 <div class="card shadow-lg border-0 mt-4" style="background-color: #343a40; color: white;">
-    
+
     <div class="card-header bg-secondary text-white">
-        <i class="fa-solid fa-message"></i> 
+        <i class="fa-solid fa-message"></i>
         @chatToNameObj.UserName
     </div>
 
     @if (newChat)
     {
-        <div class="card-body">
+        <div class="card-body custom-primary-background-color">
             <div>
                 <p class="card-text text-muted" style="color: #adb5bd !important;">No messages yet. Start a conversation!</p>
             </div>
         </div>
     }
 
-    <div class="card-body">
+    <div class="card-body custom-primary-background-color">
         @foreach (var message in chatMessages)
         {
             <div class="d-flex mb-2 @(message.FromUserId == userNameObj.Id ? "justify-content-end" : "justify-content-start")">
-                <div class="p-2 rounded"
+                <div class="p-2 rounded back"
                      style="background-color: @(message.FromUserId == userNameObj.Id ? "#007bff" : "#6c757d"); color: white;">
 
                     <span>@message.Message</span>
                     <br />
-                    <div class="d-flex justify-content-between align-items-center"> @*Place the time and delete button in same div*@
+                    <div class="d-flex justify-content-between align-items-center">
+                        @*Place the time and delete button in same div*@
                         <small class="text-muted">@message.SentDateTime.ToLocalTime().ToString("g")</small>
                         @if (message.FromUserId == userNameObj.Id)
                         {
                             <button class="btn btn-danger btn-sm ms-2"
-                                    @onclick="() => DeleteMessage(message)" style="align-self: flex-start;"> @*bottom right*@
+                                    @onclick="() => DeleteMessage(message)" style="align-self: flex-start;">
+                                @*bottom right*@
                                 Delete
                             </button>
                         }
@@ -53,20 +55,30 @@
         }
     </div>
 
-
-
     <div class="card-footer">
         <EditForm Model="@chatObj" OnValidSubmit="@SendMessage">
             <div class="d-flex">
                 <input type="text" class="form-control me-2" @bind="chatObj.Message"
-                           placeholder="Type your message here..." />
+                       placeholder="Type your message here..." />
                 <button type="submit" class="btn btn-primary w-25">
                     <i class="far fa-paper-plane" aria-hidden="true"></i>
                 </button>
             </div>
         </EditForm>
     </div>
+
 </div>
+
+@if (emptyMessage == true)
+{
+    <div class="alert alert-danger alert-dismissible show mt-2" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> Message cannot be empty.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+
+
 
 
 @code {
@@ -78,6 +90,7 @@
     private List<MyProject.Model.Chat> chatMessages;
 
     private bool newChat = true;
+    private bool emptyMessage = false;
 
     [Parameter]
     public string userId { get; set; }
@@ -119,8 +132,11 @@
     {
         if (string.IsNullOrWhiteSpace(chatObj.Message))
         {
+            emptyMessage = true;
             return;
         }
+
+        emptyMessage = false;
 
         chatObj.FromUserId = userNameObj.Id;
         chatObj.ToUserId = chatToNameObj.Id;
@@ -131,7 +147,7 @@
         chatObj = new MyProject.Model.Chat();
 
         newChat = false; //Setting it to false so it updates
-    
+
         chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj);
     }
 
@@ -139,6 +155,11 @@
     {
         await chatProvider.DeleteMessageAsync(chat); //delete func
         chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj); //refresh
+        if (chatMessages.Count == 0)
+        {
+            newChat = true;
+        }
+
     }
 
 }

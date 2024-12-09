@@ -24,6 +24,19 @@ namespace MyProject.Context
                 .ToListAsync();
         }
 
+        public async Task<List<User>> RetrieveMessageList(User currentUser)
+        {
+            var chats = await _context.Chats
+                .Where(chat => chat.FromUserId == currentUser.Id || chat.ToUserId == currentUser.Id)
+                .ToListAsync();
+
+            var usersMessaged = new List<User>();
+
+            usersMessaged = chats.Select(chat => chat.ToUser).Distinct().ToList();
+
+            return usersMessaged;
+        }
+
         public async Task SendMessageAsync(Chat chat)
         {
             _context.Chats.Add(chat);

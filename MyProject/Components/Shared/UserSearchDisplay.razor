@@ -5,12 +5,12 @@
 @using Microsoft.AspNetCore.Components.Authorization @*Page only accessible by those authorized*@
 @inherits LayoutComponentBase
 
-
 @inject UserManager<User> userManager;
 @* Post provider allows for me to access the functions in PostProvider *@
 @inject PostCommentProvider PostCommentProvider;
 @inject NavigationManager NavigationManager;
 @inject UserManager<User> userManager;
+@inject ChatProvider chatProvider
 @*For retrieving client ID*@
 @inject IHttpContextAccessor httpContextAccessor;
 @*For retrieving client ID*@
@@ -70,10 +70,24 @@
         }
 
     }
-    
+
 }
 
-
+@if (usersMessaged.Count > 0)
+{
+    <div class="card-body custom-primary-background-color">
+        @{
+            foreach (var user in usersMessaged)
+            {
+                <p>@user.UserName</p>
+            }
+        }
+    </div>
+}
+else
+{
+    <p>hh</p>
+}
 
 @code {
     private User searchUsername = new User();
@@ -81,11 +95,11 @@
     private User user;
     private User currentUserObj;
     private bool buttonClicked;
+    private List<User> usersMessaged = new List<User>();
 
     protected override async Task OnInitializedAsync()
     {
         var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
-
         if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
         {
             var currentUser = await userManager.GetUserAsync(context.User); //userManager is responsible for information based on a user, getuserasync retrives information basied off of context.User as it represents the authenticated user
@@ -95,6 +109,11 @@
                 currentUserObj = currentUser;
             }
         }
+        usersMessaged = await chatProvider.RetrieveMessageList(currentUserObj);
+
+
+
+        
 
     }
 
