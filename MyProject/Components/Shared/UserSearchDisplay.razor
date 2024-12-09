@@ -75,13 +75,19 @@
 
 @if (usersMessaged.Count > 0)
 {
-    <div class="card-body custom-primary-background-color">
-        @{
-            foreach (var user in usersMessaged)
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Contacts</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            @foreach (var userIterator in usersMessaged)
             {
-                <p>@user.UserName</p>
+                <li class="list-group-item d-flex align-items-center">
+                    <img src="/Images for R2_0/Default_pfp.png" alt="@userIterator.UserName" class="rounded-circle me-3" style="width: 40px; height: 40px;">
+                    <span class="fw-bold">@userIterator.UserName</span>
+                </li>
             }
-        }
+        </ul>
     </div>
 }
 else
@@ -110,10 +116,6 @@ else
             }
         }
         usersMessaged = await chatProvider.RetrieveMessageList(currentUserObj);
-
-
-
-        
 
     }
 

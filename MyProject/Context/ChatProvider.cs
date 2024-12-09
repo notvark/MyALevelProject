@@ -27,14 +27,20 @@ namespace MyProject.Context
         public async Task<List<User>> RetrieveMessageList(User currentUser)
         {
             var chats = await _context.Chats
-                .Where(chat => chat.FromUserId == currentUser.Id || chat.ToUserId == currentUser.Id)
-                .ToListAsync();
+                .Where(chat => chat.FromUserId == currentUser.Id || chat.ToUserId == currentUser.Id) //retrieving chats sent to or sent from current user
+                .ToListAsync(); //transforming it into a list
 
-            var usersMessaged = new List<User>();
+            var userIds = chats
+                .SelectMany(chat => new[] { chat.FromUserId, chat.ToUserId }) //extracts User Ids from both FromUserID and ToUserID and puts it into a flat list
+                .Where(userId => userId != currentUser.Id) //excluding my ID
+                .Distinct() //unique, removes duplicates
+                .ToList(); //transforms into a list
 
-            usersMessaged = chats.Select(chat => chat.ToUser).Distinct().ToList();
+            var usersMessaged = await _context.Users
+                .Where(user => userIds.Contains(user.Id)) //user IDs from the userIds list are turned into a list of users
+                .ToListAsync(); //transforms into a list
 
-            return usersMessaged;
+            return usersMessaged; //returns list of users
         }
 
         public async Task SendMessageAsync(Chat chat)
