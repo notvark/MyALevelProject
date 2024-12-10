@@ -82,13 +82,17 @@
         <ul class="list-group list-group-flush">
             @foreach (var userIterator in usersMessaged)
             {
-                <li class="list-group-item d-flex align-items-center">
-                    <img src="/Images for R2_0/Default_pfp.png" alt="@userIterator.UserName" class="rounded-circle me-3" style="width: 40px; height: 40px;">
-                    <span class="fw-bold">@userIterator.UserName</span>
+                <li class="list-group-item d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <img src="/Images for R2_0/Default_pfp.png" alt="@userIterator.UserName" class="rounded-circle me-3" style="width: 40px; height: 40px;">
+                        <span class="fw-bold">@userIterator.UserName</span>
+                    </div>
+                    <button class="btn btn-success btn-sm" @onclick="() => ChatRedirect(userIterator)">Chat</button>
                 </li>
             }
         </ul>
     </div>
+
 }
 else
 {
