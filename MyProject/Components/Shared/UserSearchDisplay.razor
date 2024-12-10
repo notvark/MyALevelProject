@@ -75,28 +75,34 @@
 
 @if (usersMessaged.Count > 0)
 {
-    <div class="card">
+    <div class="card custom-primary-background-color custom-primary-white-text-color">
         <div class="card-header">
-            <h5 class="card-title">Contacts</h5>
+            <h5 class="card-title">Contacts (@usersMessaged.Count())</h5>
         </div>
         <ul class="list-group list-group-flush">
             @foreach (var userIterator in usersMessaged)
             {
-                <li class="list-group-item d-flex align-items-center justify-content-between">
+                <li class="list-group-item d-flex align-items-center justify-content-between custom-primary-background-color custom-primary-white-text-color">
                     <div class="d-flex align-items-center">
                         <img src="/Images for R2_0/Default_pfp.png" alt="@userIterator.UserName" class="rounded-circle me-3" style="width: 40px; height: 40px;">
                         <span class="fw-bold">@userIterator.UserName</span>
                     </div>
-                    <button class="btn btn-success btn-sm" @onclick="() => ChatRedirect(userIterator)">Chat</button>
+                    <div class="d-flex">
+                        <a href="/Home/Profile/@userIterator.UserName" class="btn btn-primary btn-sm me-2">View Profile</a>
+                        <button class="btn btn-success btn-sm" @onclick="() => ChatRedirect(userIterator)">Chat</button>
+                    </div>
                 </li>
             }
         </ul>
     </div>
-
 }
 else
 {
-    <p>hh</p>
+    <div class="card custom-primary-background-color custom-primary-white-text-color">
+        <div class="card-header">
+            <h5 class="card-title">You currently have no contacts.</h5>
+        </div>
+    </div>
 }
 
 @code {

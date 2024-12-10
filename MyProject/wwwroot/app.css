@@ -33,7 +33,7 @@ body { /* Overall body color */
 }
 
 .custom-primary-background-color { /* The main body color */
-    background-color: #2b2b2b; /* Darker gray */
+    background-color: #2b2b2b !important; /* Darker gray */
 }
 
 .custom-primary-login-card { /* The color of the card containing the form */
