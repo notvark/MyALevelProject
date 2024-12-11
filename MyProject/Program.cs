@@ -28,6 +28,7 @@ builder.Services.AddScoped<NoteProvider>();
 builder.Services.AddScoped<PostProvider>();
 builder.Services.AddScoped<PostCommentProvider>();
 builder.Services.AddScoped<ChatProvider>();
+builder.Services.AddScoped<FollowingProvider>();
 
 builder.Services.AddIdentityCore<User>()
     .AddEntityFrameworkStores<DatabaseContext>()
