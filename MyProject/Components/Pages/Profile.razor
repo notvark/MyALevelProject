@@ -36,12 +36,12 @@
                         <!-- Followers -->
                         <div class="custom-primary-white-text-color text-center">
                             <h5 class="mb-0">Followers</h5>
-                            <p class="mb-0">@followersOfSearchedUser</p>
+                            <p class="mb-0">@userFollowers.Count()</p>
                         </div>
                         <!-- Following -->
                         <div class="custom-primary-white-text-color text-center">
                             <h5 class="mb-0">Following</h5>
-                            <p class="mb-0">@followingOfSearchedUser</p>
+                            <p class="mb-0">@userFollowing.Count()</p>
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,8 @@
     private User searchedUser = new User();
     private string feedbackMessage;
     private bool isSuccessful;
-    private int followingUsers;
+    private List<User> userFollowing;
+    private List<User> userFollowers;
 
     [Parameter]
     public string userName { get; set; }
@@ -64,16 +65,18 @@
     protected override async Task OnInitializedAsync()
     {
         searchedUser = await userManager.FindByNameAsync(userName);
+        ReturnFollowersAsync(User);
+        ReturnFollowingAsync(User);
     }
 
-    private async Task ReturnFollowers(User user)
+    private async Task ReturnFollowersAsync(User user)
     {
-        return await followingProvider.
+        userFollowers = followingProvider.ReturnFollowers(user);
     }
 
-    private async Task ReturnFollowers(User user)
+    private async Task ReturnFollowingAsync(User user)
     {
-        return;
+        userFollowing = followingProvider.ReturnFollowing(user);        
     }
 
 

@@ -1,11 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MyProject.Model;
+﻿using MyProject.Model;
 
 namespace MyProject.Context
 {
     public class FollowingProvider
     {
-
         private readonly DatabaseContext _context;
 
         public FollowingProvider(DatabaseContext context)
@@ -13,15 +11,18 @@ namespace MyProject.Context
             _context = context;
         }
 
-        private List<Follower> ReturnFollowers(User user)
+        public List<User> ReturnFollowers(User user)
         {
-            return user.FollowingUsers;
+            return _context.Users
+                .Where(user => user.FollowedUsers.Any())
+                .ToList();
         }
 
-        private List<Follower> ReturnFollowing(User user)
+        public List<User> ReturnFollowing(User user)
         {
-            return user.FollowedUsers;
+            return _context.Users
+                .Where(user => user.FollowingUsers.Any())
+                .ToList();
         }
-
     }
 }
