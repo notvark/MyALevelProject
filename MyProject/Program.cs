@@ -49,7 +49,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
+app.MapRazorComponents<App>() //To do with rendering
     .AddInteractiveServerRenderMode();
 
 app.MapAdditionalAccountRoutes();

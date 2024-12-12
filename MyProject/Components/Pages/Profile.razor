@@ -15,17 +15,21 @@
 @inject FollowingProvider followingProvider
 
 <div class="container mt-4 custom">
+
     <!-- Profile Card -->
     <div class="card border-0">
         <div class="card-body custom-primary-background-color">
             <div class="row align-items-center">
+
                 <!-- Profile Picture -->
                 <div class="col-auto">
                     <img src="@(!string.IsNullOrEmpty(searchedUser.ProfilePicture) ? searchedUser.ProfilePicture : "/Images for R2_0/Default_pfp.png")"
                          alt="@searchedUser.UserName" class="rounded-circle me-3" style="width: 150px; height: 150px;">
                 </div>
+
                 <!-- User Information and Stats -->
                 <div class="col">
+
                     <div class="custom-primary-white-text-color">
                         <h2 class="mb-1">@searchedUser.UserName</h2>
                         <p class="mb-3">@(!string.IsNullOrEmpty(searchedUser.Biography) ? searchedUser.Biography : "[NULL]")</p>
@@ -33,21 +37,27 @@
 
                     <!-- Stats Section -->
                     <div class="d-flex gap-5">
+
                         <!-- Followers -->
                         <div class="custom-primary-white-text-color text-center">
                             <h5 class="mb-0">Followers</h5>
                             <p class="mb-0">@userFollowers.Count()</p>
                         </div>
+
                         <!-- Following -->
                         <div class="custom-primary-white-text-color text-center">
                             <h5 class="mb-0">Following</h5>
                             <p class="mb-0">@userFollowing.Count()</p>
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
         </div>
     </div>
+
 </div>
 
 
