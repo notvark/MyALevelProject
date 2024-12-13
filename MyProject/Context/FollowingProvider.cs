@@ -1,4 +1,5 @@
-﻿using MyProject.Model;
+﻿using MyProject.Components.Pages;
+using MyProject.Model;
 
 namespace MyProject.Context
 {
@@ -25,9 +26,24 @@ namespace MyProject.Context
                 .ToList();
         }
 
-        public bool ReturnDoesUserFollowSearchedUser(Follower user, User searchedUser)
+        public bool IsUserFollowingSearchedUser(User currentUser, User searchedUser)
         {
-            return searchedUser.FollowedUsers.Any(user => user.Id == searchedUser.Id);
+            bool test = currentUser.FollowingUsers.Any(following => following.FollowingUserId == searchedUser.Id);
+            return test;
         }
+
+        public async Task Follow(Follower currentUser, User searchedUser)
+        {
+            searchedUser.FollowedUsers.Add(currentUser);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task Unfollow(Follower currentUser, User searchedUser)
+        {
+            searchedUser.FollowedUsers.Remove(currentUser);
+            await _context.SaveChangesAsync();
+        }
+
+
     }
 }

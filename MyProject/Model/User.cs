@@ -20,10 +20,10 @@ namespace MyProject.Model
         public List<Note> Notes { get; set; }
         public List<Chat> SentChats { get; set; }  // User sending the chat
         public List<Chat> ReceivedChats { get; set; }  // User receiving the chat
-        public List<Follower> FollowedUsers { get; set; }
-        public List<Follower> FollowingUsers { get; set; }
+        public List<Follower> FollowedUsers { get; set; } = new List<Follower>();
+        public List<Follower> FollowingUsers { get; set; } = new List<Follower>();
 
-    /* Custom functions below */
+        /* Custom functions below */
 
 
     }

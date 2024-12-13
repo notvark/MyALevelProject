@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Http
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore;
 @inherits LayoutComponentBase
 
 @inject PostProvider postProvider
@@ -14,6 +15,7 @@
 @inject IHttpContextAccessor httpContextAccessor
 @inject NavigationManager NavigationManager
 @inject FollowingProvider followingProvider
+@inject DatabaseContext DbContext
 
 <div class="container mt-4 custom">
 
@@ -57,13 +59,13 @@
                     <div class="col-12 d-flex justify-content-end mt-4 gap-2">
                         @if (searchedUser != currentUserObj)
                         {
-                            @if (isUserFollowing)
+                            @if (!isUserFollowing)
                             {
-                                <button type="button" class="btn btn-primary" onclick="handleFollowRequest()">Follow</button>
+                                <button class="btn btn-primary" @onclick="() => HandleFollow(currentUserObj, searchedUser)">Follow</button>
                             }
                             else
                             {
-                                <button type="button" class="btn btn-danger" onclick="handleUnfollowRequest()">Unfollow</button>
+                                <button class="btn btn-danger" @onclick="() => HandleUnfollow(currentUserObj, searchedUser)">Unfollow</button>
                             }
 
                             <!-- Chat Button -->
@@ -89,6 +91,7 @@
     private List<User> userFollowing;
     private List<User> userFollowers;
     private bool isUserFollowing;
+    private Follower followerObject = new Follower();
 
     [Parameter]
     public string userName { get; set; }
@@ -108,19 +111,51 @@
         }
 
         searchedUser = await userManager.FindByNameAsync(userName);
+        searchedUser = DbContext.Users.Include(u => u.FollowedUsers).Include(u => u.FollowingUsers).SingleOrDefault(u => u.Id == searchedUser.Id);
         ReturnFollowersAsync(searchedUser);
         ReturnFollowingAsync(searchedUser);
+        DetermineWhetherCurrentUserFollows(currentUserObj, searchedUser);
     }
 
     private async Task ReturnFollowersAsync(User user)
     {
-        userFollowers = followingProvider.ReturnFollowers(user);
+        userFollowers = followingProvider.ReturnFollowers(searchedUser);
     }
 
     private async Task ReturnFollowingAsync(User user)
     {
-        userFollowing = followingProvider.ReturnFollowing(user);        
+        userFollowing = followingProvider.ReturnFollowing(searchedUser);        
     }
 
+    private async Task DetermineWhetherCurrentUserFollows(User user, User searchedUser)
+    {
+        isUserFollowing = followingProvider.IsUserFollowingSearchedUser(user, searchedUser);
+    }
+
+    private async Task HandleFollow(User user, User searchedUser)
+    {
+        followerObject.User = currentUserObj;
+        followerObject.UserId = currentUserObj.Id;
+        followerObject.FollowingUser = searchedUser;
+        followerObject.FollowingUserId = searchedUser.Id;
+
+        followingProvider.Follow(followerObject, searchedUser);
+        ReturnFollowersAsync(searchedUser);
+        ReturnFollowingAsync(searchedUser);
+        DetermineWhetherCurrentUserFollows(user, searchedUser);
+    }
+
+    private async Task HandleUnfollow(User user, User searchedUser)
+    {
+        followerObject.User = currentUserObj;
+        followerObject.UserId = currentUserObj.Id;
+        followerObject.FollowingUser = searchedUser;
+        followerObject.FollowingUserId = searchedUser.Id;
+
+        followingProvider.Unfollow(followerObject, searchedUser);
+        ReturnFollowersAsync(searchedUser);
+        ReturnFollowingAsync(searchedUser);
+        DetermineWhetherCurrentUserFollows(user, searchedUser);
+    }
 
 }
