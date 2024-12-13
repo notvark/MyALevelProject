@@ -28,8 +28,7 @@ namespace MyProject.Context
 
         public bool IsUserFollowingSearchedUser(User currentUser, User searchedUser)
         {
-            bool test = currentUser.FollowingUsers.Any(following => following.FollowingUserId == searchedUser.Id);
-            return test;
+             return currentUser.FollowingUsers.Any(following => following.FollowingUserId == searchedUser.Id);
         }
 
         public async Task Follow(Follower currentUser, User searchedUser)

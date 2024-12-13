@@ -93,7 +93,7 @@ body { /* Overall body color */
 
 .user-link {
     text-decoration: none; /* Remove underline */
-    color: #333; /* Text color for the username */
+    color: #444; /* Text color for the username */
     font-weight: 500; /* Optional: make the username slightly bolder */
     transition: color 0.3s; /* Smooth transition for hover effect */
 }

@@ -14,7 +14,7 @@
 
 <div class="d-flex justify-content-center p-2">
     <ul class="list-group" style="max-width: 800px; width: 100%;">
-        <div class="card mb-3 text-light" style="background-color: black; border-radius: 8px; width: 800px;">
+        <div class="card mb-3 text-light custom-primary-background-color" style="background-color: black; border-radius: 8px; width: 800px;">
             <div class="card-body">
                 <div class="position-absolute top-0 end-0 p-2">
 
@@ -66,7 +66,7 @@
     <ul class="list-group" style="max-width: 800px; width: 100%;">
         @foreach (var comment in postcomments)
         {
-            <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color border-0 mb-2" style="background-color:black;">
+            <li class="list-group-item d-flex justify-content-between align-items-start custom-primary-white-text-color custom-primary-background-color border-0 mb-2" style="background-color:black;">
 
                 <div style="flex-grow: 1;">
 
@@ -103,7 +103,7 @@
                 {
                     <button class="btn btn-danger btn-sm mt-1" style="align-self: flex-start;" @onclick="() => DeletePostComment(comment)">Delete</button>
                 }
-
+                
             </li>
         }
     </ul>
@@ -131,8 +131,6 @@
         Post = await postProvider.GetPostByIdAsync(id);
         postcomments = await postCommentProvider.GetCommentByPostAsync(Post);
         //returning comments from the database itself through the postCommentProvider, as it is linked
-
-
 
         var context = httpContextAccessor.HttpContext; //instead of making multiple requests, make one request
 
