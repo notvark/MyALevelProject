@@ -24,5 +24,10 @@ namespace MyProject.Context
                 .Where(user => user.FollowingUsers.Any())
                 .ToList();
         }
+
+        public bool ReturnDoesUserFollowSearchedUser(Follower user, User searchedUser)
+        {
+            return searchedUser.FollowedUsers.Any(user => user.Id == searchedUser.Id);
+        }
     }
 }

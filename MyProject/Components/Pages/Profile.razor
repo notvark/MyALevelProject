@@ -9,6 +9,7 @@
 
 @inject PostProvider postProvider
 @inject PostCommentProvider postCommentProvider
+@inject DatabaseContext DatabaseContext;
 @inject UserManager<User> userManager
 @inject IHttpContextAccessor httpContextAccessor
 @inject NavigationManager NavigationManager
@@ -52,6 +53,25 @@
 
                     </div>
 
+                    <!-- Follow Button -->
+                    <div class="col-12 d-flex justify-content-end mt-4 gap-2">
+                        @if (searchedUser != currentUserObj)
+                        {
+                            @if (isUserFollowing)
+                            {
+                                <button type="button" class="btn btn-primary" onclick="handleFollowRequest()">Follow</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-danger" onclick="handleUnfollowRequest()">Unfollow</button>
+                            }
+
+                            <!-- Chat Button -->
+
+                            <button type="button" class="btn btn-primary" onclick="handleChatRequest()">Chat</button>
+                        }                        
+                    </div>
+
                 </div>
 
             </div>
@@ -62,21 +82,34 @@
 
 
 @code {
-    private User User { get; set; } = new();
+    private User currentUserObj;
     private User searchedUser = new User();
     private string feedbackMessage;
     private bool isSuccessful;
     private List<User> userFollowing;
     private List<User> userFollowers;
+    private bool isUserFollowing;
 
     [Parameter]
     public string userName { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        var context = httpContextAccessor.HttpContext;
+
+        if (context != null && context.User.Identity != null && context.User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(context.User); //await to actually get the User object
+
+            if (currentUser != null)
+            {
+                currentUserObj = currentUser;
+            }
+        }
+
         searchedUser = await userManager.FindByNameAsync(userName);
-        ReturnFollowersAsync(User);
-        ReturnFollowingAsync(User);
+        ReturnFollowersAsync(searchedUser);
+        ReturnFollowingAsync(searchedUser);
     }
 
     private async Task ReturnFollowersAsync(User user)
