@@ -12,35 +12,29 @@ namespace MyProject.Context
             _context = context;
         }
 
-        public List<User> ReturnFollowers(User user)
+        public bool IsUserFollowingSearchedUser(User followerObject, User searchedUser)
         {
-            return _context.Users
-                .Where(user => user.FollowedUsers.Any())
-                .ToList();
+             return followerObject.FollowingUsers.Any(following => following.FollowingUserId == searchedUser.Id);
         }
 
-        public List<User> ReturnFollowing(User user)
+        public async Task Follow(Follower followerObject, User searchedUser)
         {
-            return _context.Users
-                .Where(user => user.FollowingUsers.Any())
-                .ToList();
+            if (!searchedUser.FollowedUsers.Contains(followerObject))
+            {
+                searchedUser.FollowedUsers.Add(followerObject);
+                followerObject.FollowingUser.FollowingUsers.Remove(followerObject);
+                await _context.SaveChangesAsync();
+            }  
         }
 
-        public bool IsUserFollowingSearchedUser(User currentUser, User searchedUser)
+        public async Task Unfollow(Follower followerObject, User searchedUser)
         {
-             return currentUser.FollowingUsers.Any(following => following.FollowingUserId == searchedUser.Id);
-        }
-
-        public async Task Follow(Follower currentUser, User searchedUser)
-        {
-            searchedUser.FollowedUsers.Add(currentUser);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task Unfollow(Follower currentUser, User searchedUser)
-        {
-            searchedUser.FollowedUsers.Remove(currentUser);
-            await _context.SaveChangesAsync();
+            if (searchedUser.FollowedUsers.Contains(followerObject))
+            {
+                searchedUser.FollowedUsers.Remove(followerObject);
+                followerObject.FollowingUser.FollowingUsers.Remove(followerObject);
+                await _context.SaveChangesAsync();
+            }
         }
 
 

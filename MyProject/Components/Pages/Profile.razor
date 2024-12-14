@@ -44,13 +44,13 @@
                         <!-- Followers -->
                         <div class="custom-primary-white-text-color text-center">
                             <h5 class="mb-0">Followers</h5>
-                            <p class="mb-0">@userFollowers.Count()</p>
+                            <p class="mb-0">@searchedUser.FollowedUsers.Count()</p>
                         </div>
 
                         <!-- Following -->
                         <div class="custom-primary-white-text-color text-center">
                             <h5 class="mb-0">Following</h5>
-                            <p class="mb-0">@userFollowing.Count()</p>
+                            <p class="mb-0">@searchedUser.FollowingUsers.Count()</p>
                         </div>
 
                     </div>
@@ -70,8 +70,8 @@
 
                             <!-- Chat Button -->
 
-                            <button type="button" class="btn btn-primary" onclick="handleChatRequest()">Chat</button>
-                        }                        
+                            <button class="btn btn-success" @onclick="() => HandleChatRedirect(searchedUser)">Chat</button>
+                        }
                     </div>
 
                 </div>
@@ -91,7 +91,6 @@
     private List<User> userFollowing;
     private List<User> userFollowers;
     private bool isUserFollowing;
-    private Follower followerObject = new Follower();
 
     [Parameter]
     public string userName { get; set; }
@@ -112,19 +111,7 @@
 
         searchedUser = await userManager.FindByNameAsync(userName);
         searchedUser = DbContext.Users.Include(u => u.FollowedUsers).Include(u => u.FollowingUsers).SingleOrDefault(u => u.Id == searchedUser.Id);
-        ReturnFollowersAsync(searchedUser);
-        ReturnFollowingAsync(searchedUser);
-        DetermineWhetherCurrentUserFollows(currentUserObj, searchedUser);
-    }
-
-    private async Task ReturnFollowersAsync(User user)
-    {
-        userFollowers = followingProvider.ReturnFollowers(searchedUser);
-    }
-
-    private async Task ReturnFollowingAsync(User user)
-    {
-        userFollowing = followingProvider.ReturnFollowing(searchedUser);        
+        await DetermineWhetherCurrentUserFollows(currentUserObj, searchedUser);
     }
 
     private async Task DetermineWhetherCurrentUserFollows(User user, User searchedUser)
@@ -134,28 +121,36 @@
 
     private async Task HandleFollow(User user, User searchedUser)
     {
-        followerObject.User = currentUserObj;
-        followerObject.UserId = currentUserObj.Id;
-        followerObject.FollowingUser = searchedUser;
-        followerObject.FollowingUserId = searchedUser.Id;
+        var followerObject = new Follower
+            {
+                User = searchedUser,
+                UserId = searchedUser.Id,
+                FollowingUser = currentUserObj,
+                FollowingUserId = currentUserObj.Id
+            };
 
-        followingProvider.Follow(followerObject, searchedUser);
-        ReturnFollowersAsync(searchedUser);
-        ReturnFollowingAsync(searchedUser);
-        DetermineWhetherCurrentUserFollows(user, searchedUser);
+        await followingProvider.Follow(followerObject, searchedUser);
+        await DetermineWhetherCurrentUserFollows(user, searchedUser);
     }
 
     private async Task HandleUnfollow(User user, User searchedUser)
     {
-        followerObject.User = currentUserObj;
-        followerObject.UserId = currentUserObj.Id;
-        followerObject.FollowingUser = searchedUser;
-        followerObject.FollowingUserId = searchedUser.Id;
+        var followerObject = new Follower
+            {
+                User = searchedUser,
+                UserId = searchedUser.Id,
+                FollowingUser = currentUserObj,
+                FollowingUserId = currentUserObj.Id
+            };
 
-        followingProvider.Unfollow(followerObject, searchedUser);
-        ReturnFollowersAsync(searchedUser);
-        ReturnFollowingAsync(searchedUser);
-        DetermineWhetherCurrentUserFollows(user, searchedUser);
+        await followingProvider.Unfollow(followerObject, searchedUser);
+        await DetermineWhetherCurrentUserFollows(user, searchedUser);
     }
+
+    private async Task HandleChatRedirect(User searchedUser)
+    {
+        NavigationManager.NavigateTo($"/Home/Chat/{currentUserObj.Id}/{searchedUser.Id}");
+    }
+
 
 }
