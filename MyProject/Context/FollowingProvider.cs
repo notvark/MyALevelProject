@@ -29,10 +29,11 @@ namespace MyProject.Context
 
         public async Task Unfollow(Follower followerObject, User searchedUser)
         {
-            if (searchedUser.FollowedUsers.Contains(followerObject))
+            var follower = searchedUser.FollowedUsers.SingleOrDefault(f => f.UserId == followerObject.FollowingUserId);
+            if (follower != null)
             {
-                searchedUser.FollowedUsers.Remove(followerObject);
-                followerObject.FollowingUser.FollowingUsers.Remove(followerObject);
+                searchedUser.FollowedUsers.Remove(follower);
+                followerObject.FollowingUser.FollowingUsers.Remove(follower);
                 await _context.SaveChangesAsync();
             }
         }
