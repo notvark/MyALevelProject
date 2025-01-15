@@ -130,25 +130,26 @@
 
     private async Task SendMessage()
     {
-        if (string.IsNullOrWhiteSpace(chatObj.Message))
+        if (string.IsNullOrWhiteSpace(chatObj.Message)) //ifthe chat message section is empty
         {
-            emptyMessage = true;
-            return;
+            emptyMessage = true; //flags an error
+            return; //returns nothing, cancels operations
         }
 
-        emptyMessage = false;
+        emptyMessage = false; //if a flag is on, it's off after content has been entered and submitted
 
-        chatObj.FromUserId = userNameObj.Id;
+        chatObj.FromUserId = userNameObj.Id; //setting up the object's properties
         chatObj.ToUserId = chatToNameObj.Id;
-        chatObj.SentDateTime = DateTime.UtcNow;
+        chatObj.SentDateTime = DateTime.UtcNow; //adding the time of now to later display it in order
 
-        await chatProvider.SendMessageAsync(chatObj);
+        await chatProvider.SendMessageAsync(chatObj); //sending the message adds it in essence
 
-        chatObj = new MyProject.Model.Chat();
+        chatObj = new MyProject.Model.Chat(); //section is emptied for next message
 
         newChat = false; //Setting it to false so it updates
 
-        chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj);
+        chatMessages = await chatProvider.RetrieveTextsOrdered(userNameObj, chatToNameObj); 
+        //when the message is delivered, they are refreshed to display the newer texts
     }
 
     private async Task DeleteMessage(MyProject.Model.Chat chat)

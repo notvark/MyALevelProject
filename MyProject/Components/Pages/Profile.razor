@@ -88,8 +88,8 @@
     private User searchedUser = new User();
     private string feedbackMessage;
     private bool isSuccessful;
-    private List<User> userFollowing;
-    private List<User> userFollowers;
+    private List<User> userFollowing; //users the user is following
+    private List<User> userFollowers; //followers of user
     private bool isUserFollowing;
 
     [Parameter]
@@ -109,8 +109,9 @@
             }
         }
 
-        searchedUser = await userManager.FindByNameAsync(userName);
+        searchedUser = await userManager.FindByNameAsync(userName); //gets the user object from the userManager
         searchedUser = DbContext.Users.Include(u => u.FollowedUsers).Include(u => u.FollowingUsers).SingleOrDefault(u => u.Id == searchedUser.Id);
+        //updated version of user retriever, this time from db
         await DetermineWhetherCurrentUserFollows(currentUserObj, searchedUser);
     }
 
@@ -123,27 +124,31 @@
     {
         var followerObject = new Follower
             {
-                User = searchedUser,
-                UserId = searchedUser.Id,
-                FollowingUser = currentUserObj,
-                FollowingUserId = currentUserObj.Id
+                User = searchedUser, //the user being followed
+                UserId = searchedUser.Id, //id of user being followed
+                FollowingUser = currentUserObj, //current user
+                FollowingUserId = currentUserObj.Id //id of current user
             };
 
         await followingProvider.Follow(followerObject, searchedUser);
+        //add follower relationship to the data through followingProvider
         await DetermineWhetherCurrentUserFollows(user, searchedUser);
+        //updates the current user's following status 
     }
 
     private async Task HandleUnfollow(User user, User searchedUser)
     {
         var followerObject = new Follower
             {
-                User = searchedUser,
-                UserId = searchedUser.Id,
-                FollowingUser = currentUserObj,
-                FollowingUserId = currentUserObj.Id
+                User = searchedUser, //the user being followed
+                UserId = searchedUser.Id, //id of user being followed
+                FollowingUser = currentUserObj, //current user
+                FollowingUserId = currentUserObj.Id //id of current user
             };
 
+        //remove follower relationship to the data through followingProvider
         await followingProvider.Unfollow(followerObject, searchedUser);
+        //updates the current user's following status
         await DetermineWhetherCurrentUserFollows(user, searchedUser);
     }
 

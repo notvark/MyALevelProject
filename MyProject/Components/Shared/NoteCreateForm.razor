@@ -59,7 +59,7 @@
 
     private User UserId { get; set; } //To transfer value from function above
     private Note Note { get; set; } = new Note();
-    private List<Note> notes;
+    private List<Note> notes; //used to store notes from database as note objects
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,19 +68,20 @@
         UserId = currentUser; // Can't be null, page only accessible by Authorized Users, ignore
 
         notes = await NoteProvider.GetNoteByUserAsync(UserId);
+        //retrieves the notes by the user id from the note provider
     }
 
     private async Task HandleSubmit()
     {
 
-        if (string.IsNullOrWhiteSpace(Note.NoteContent))
+        if (string.IsNullOrWhiteSpace(Note.NoteContent)) //if the content of the note is empty "On submit"
         {
-            return;
+            return; //returns nothing
         }
 
-        Note.User = UserId;
+        Note.User = UserId; //making it simpler, instead of using Note.User
 
-        await NoteProvider.AddNoteAsync(Note);
+        await NoteProvider.AddNoteAsync(Note); //adds note to database through the AddNoteAsync function
         Note = new Note(); //removes input from form
         notes = await NoteProvider.GetNoteByUserAsync(UserId); //refreshes notes without issues
 

@@ -126,28 +126,28 @@
 
     private async Task<bool> CheckPasswordsMatchAsync(string password, string confirmPassword)
     {
-        return password != confirmPassword;
+        return password != confirmPassword; //checks to see if the password entered is the same as the 2nd attempt
+                                            //of the password
     }
 
     public async Task RegisterUser(EditContext editContext)
     {
 
-        if (await CheckEmailAsync(Model.Email))
+        if (await CheckEmailAsync(Model.Email)) //checks if the user is in the database
         {
-
             identityErrors = new List<IdentityError> { new IdentityError { Description = "Email is already taken." } };
-            isError = true;
+            isError = true; //flags an error, returns IdentityError
             return;
         }
 
         if (await CheckPasswordsMatchAsync(Model.Password, Model.ConfirmPassword))
         {
             identityErrors = new List<IdentityError> { new IdentityError { Description = "Passwords do not match." } };
-            isError = true;
+            isError = true; //flags an error if passwords don't match
             return;
         }
 
-        var user = new User
+        var user = new User //identifies the properties within the User model
             {
                 UserName = Model.UserName,
                 Email = Model.Email,

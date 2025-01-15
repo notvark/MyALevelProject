@@ -21,23 +21,23 @@ namespace MyProject.Context
         {
             if (!searchedUser.FollowedUsers.Contains(followerObject))
             {
-                searchedUser.FollowedUsers.Add(followerObject);
-                followerObject.FollowingUser.FollowingUsers.Remove(followerObject);
-                await _context.SaveChangesAsync();
+                searchedUser.FollowedUsers.Add(followerObject); //adds follower object to the FollowedUsers list for
+                                                                //searchedUser
+                followerObject.FollowingUser.FollowingUsers.Remove(followerObject);   
+                await _context.SaveChangesAsync(); //saves changes to the database
             }  
         }
 
         public async Task Unfollow(Follower followerObject, User searchedUser)
         {
-            var follower = searchedUser.FollowedUsers.SingleOrDefault(f => f.UserId == followerObject.FollowingUserId);
-            if (follower != null)
+            var follower = searchedUser.FollowedUsers.SingleOrDefault(f => f.UserId == followerObject.FollowingUserId); //fetches user from followed user list
+            if (follower != null) //if the follower exists
             {
-                searchedUser.FollowedUsers.Remove(follower);
+                searchedUser.FollowedUsers.Remove(follower); //removes follower from follower user's list for user 
                 followerObject.FollowingUser.FollowingUsers.Remove(follower);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); //saves changes
             }
         }
-
 
     }
 }

@@ -60,11 +60,11 @@ namespace MyProject.Context
         public int CountCommentsForPostAsync(Post post)
         {
             var comment = _context.PostComments
-                .Where(postcomment => postcomment.Post.Id == post.Id)
-                .Count();
-
+                .Where(postcomment => postcomment.Post.Id == post.Id) //where the post id propety of the post comment is equal to
+                .Count();                                             //the id of the post 
+                //counts the amount of comments related to the post
             return comment;
-        } //Testing Function 30/10/24
+        } 
 
     }
 }

@@ -51,8 +51,8 @@ namespace MyProject.Context
 
         public async Task DeleteMessageAsync(Chat chat)
         {
-            _context.Chats.Remove(chat);
-            await _context.SaveChangesAsync();
+            _context.Chats.Remove(chat); //deletes the chat from the database
+            await _context.SaveChangesAsync(); //saves changes to the database
         }
     }
 }
